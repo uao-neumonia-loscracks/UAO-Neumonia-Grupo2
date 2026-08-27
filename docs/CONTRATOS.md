@@ -1,6 +1,6 @@
 ## 5. Contratos de módulos (API congelada)
- 
-> **Este es el artefacto más importante del plan.** Se congela en H1. Ningún hilo puede cambiar una firma sin registrar un ADR. Guardar como `docs/CONTRATOS.md`.
+
+Ningún hilo puede cambiar una firma sin registrar un ADR. Guardar como `docs/CONTRATOS.md`.
  
 ### 5.1 `src/config.py` — constantes centralizadas
  
