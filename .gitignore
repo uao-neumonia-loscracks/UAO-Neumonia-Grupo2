@@ -1,0 +1,68 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+*.egg
+
+# === Entornos virtuales ===
+.venv/
+venv/
+env/
+ENV/
+
+# === UV ===
+# uv.lock SÍ se commitea (reproducibilidad). Solo se ignoran cachés locales de uv.
+.uv-cache/
+
+# === Testing / cobertura ===
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# === Jupyter ===
+.ipynb_checkpoints/
+
+# === VS Code (se versionan settings.json, extensions.json, launch.json a propósito) ===
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# === macOS ===
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# === Windows ===
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# === Logs y artefactos locales ===
+*.log
+*.tmp
+output/
+
+# === Docker ===
+*.pid
+
+# === === MODELO BINARIO — EXCLUSIÓN OBLIGATORIA === ===
+# El modelo pesa varios MB y NO debe versionarse. Se distribuye por fuera del repo
+# y se resuelve vía la variable de entorno MODEL_PATH (fallback: models/conv_MLP_84.h5).
+*.h5
+models/*.h5
+conv_MLP_84.h5
+!models/README.md
+!models/.gitkeep

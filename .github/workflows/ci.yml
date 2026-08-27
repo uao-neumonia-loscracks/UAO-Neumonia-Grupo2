@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-test:
+    name: Lint y tests (Python 3.13)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Configurar Python 3.13
+        run: uv python install 3.13
+
+      - name: Instalar dependencias
+        run: uv sync --frozen
+
+      - name: Lint (ruff check)
+        run: uv run ruff check .
+
+      - name: Formato (ruff format --check)
+        run: uv run ruff format --check .
+
+      - name: Tests (excluye los que requieren modelo o display)
+        run: uv run pytest -m "not requires_model and not gui" -q
+
+  docker:
+    name: Build de imagen Docker + smoke test
+    runs-on: ubuntu-latest
+    needs: lint-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Libera espacio en disco: TensorFlow + OpenCV + capas de build no caben
+      # en el margen libre por defecto del runner (~14GB con software
+      # preinstalado que este proyecto no usa: .NET, Android SDK, GHC, etc.).
+      - name: Liberar espacio en disco del runner
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/share/boost
+          docker system prune -af --volumes
+          df -h /
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Construir imagen (sin push)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: neumonia:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
+
+      - name: Espacio en disco tras el build
+        run: df -h /
+
+      - name: Smoke test con datos sintéticos (--dry-run, sin modelo real en CI)
+        run: |
+          docker run --rm neumonia:ci \
+            python scripts/smoke_test.py \
+              --image tests/data/sample_synthetic.dcm \
+              --dry-run

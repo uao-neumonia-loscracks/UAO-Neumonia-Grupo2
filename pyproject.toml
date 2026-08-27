@@ -1,0 +1,87 @@
+[project]
+name = "uao-neumonia"
+version = "1.0.0"
+description = "Detector de neumonía (CNN + Grad-CAM sobre radiografías DICOM/JPG) con arquitectura MVC estricta. Herramienta de apoyo educativo, NO es un dispositivo médico certificado."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.13,<3.14"
+authors = [
+    { name = "Equipo UAO-Neumonia" },
+]
+dependencies = [
+    "tensorflow==2.20.*",
+    "tf-keras",
+    "opencv-python-headless",
+    "pydicom",
+    "pillow",
+    "numpy",
+    "reportlab",
+]
+
+[project.scripts]
+detector-neumonia = "detector_neumonia:main"
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "ruff",
+    "pre-commit",
+]
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+py-modules = [
+    "config",
+    "read_img",
+    "preprocess_img",
+    "load_model",
+    "grad_cam",
+    "integrator",
+    "detector_neumonia",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["spike_compat.py", "spike_compat_legacy.py", "*.md"]
+force-exclude = true
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "D", "UP", "B", "SIM", "ANN", "PL"]
+ignore = ["D203", "D213"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D103", "ANN001", "ANN201", "ANN202"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# --cov-fail-under=0 anula temporalmente el umbral de [tool.coverage.report]
+# mientras src/ solo contiene esqueletos (NotImplementedError). Cada hilo que
+# implemente lógica real (H2-H6) debe subir progresivamente este valor;
+# al cerrar H6, elimínalo para que vuelva a regir fail_under=80 del bloque
+# [tool.coverage.report] de abajo.
+addopts = "--cov=src --cov-fail-under=0 -ra"
+markers = [
+    "requires_model: necesita conv_MLP_84.h5",
+    "gui: requiere display",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:tensorflow.*",
+    "ignore::DeprecationWarning:tf_keras.*",
+    "ignore::UserWarning:google.protobuf.*",
+    "ignore::FutureWarning:h5py.*",
+]
+
+[tool.coverage.report]
+# Meta final del proyecto (a exigirse a partir del cierre de H6).
+fail_under = 80
